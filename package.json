@@ -1,5 +1,5 @@
 {
-  "name": "@cua/schema-validator",
+  "name": "@cua/schema-validators",
   "version": "1.0.0",
   "description": "A package validator input in javascript",
   "main": "index.js",
