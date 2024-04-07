@@ -1,4 +1,4 @@
-<div style="text-align: center">
+<div align="center"> 
 <img src="https://i.ibb.co/v4gm7tc/schema-validator-log.png" alt="MarineGEO circle logo" style="height: 200px; width:220px;"/>
 </div>
 
