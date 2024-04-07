@@ -1,0 +1,39 @@
+{
+  "name": "@cua/schema-validator",
+  "version": "1.0.0",
+  "description": "A package validator input in javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf ./dist && tsc",
+    "watch": "tsc -w && npm run build",
+    "watch:win": "tsc -w && npm run build:win",
+    "build:win": "rmdir /s /q  .\\dist && tsc",
+    "publishs": "npm run build && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KhonngNhoTen/schema-validator.git"
+  },
+  "keywords": [
+    "schema",
+    "validate"
+  ],
+  "author": "KhonngNhoTen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KhonngNhoTen/schema-validator/issues"
+  },
+  "homepage": "https://github.com/KhonngNhoTen/schema-validator#readme",
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/validator": "^13.11.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "clone": "^2.1.2",
+    "glob": "^10.3.10",
+    "validator": "^13.11.0"
+  }
+}
