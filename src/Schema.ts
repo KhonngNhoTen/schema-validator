@@ -27,7 +27,8 @@ export class Schema {
 
   //#endregion
 
-  constructor(schema: Record<string, any> | InputSchema, examples?: Object) {
+  constructor(schema?: Record<string, any> | InputSchema) {
+    if(!schema) return;
     if (isInputSchema(schema)) this.validations = SchemaOptionsHelper.inputSchema2SchemaOptions(schema);
     else this.validations = SchemaOptionsHelper.compile(schema);
   }

@@ -72,7 +72,9 @@ interface StringAttributeDescription extends BaseAttributeDescription {
 export interface AttributeDescription<T> extends BaseAttributeDescription {
   attributes?: {
     [K in keyof T]: T[K] extends object
-      ? AttributeDescription<T[K]>
+      ? T[K] extends Array<any>
+      ? AttributeDescription<T[K][0]> 
+      : AttributeDescription<T[K]> 
       : // : T[K] extends string
         // ? StringAttributeDescription | DataType
         // : T[K] extends number
@@ -80,35 +82,28 @@ export interface AttributeDescription<T> extends BaseAttributeDescription {
         // : BaseAttributeDescription | DataType;
         BaseAttributeDescription | DataType;
   };
+  item?:   AttributeDescription<T> | DataType;
 }
 
-interface userSchema {
-  name: string;
-  age: number;
-  props: {
-    prop1: string;
-  };
-}
-
-const attributes: AttributeDescription<userSchema> = {
-  type: "object",
-  attributes: {
-    props: {
-      type: "object",
-      attributes: {
-        prop1: {
-          type: "string",
-        },
-      },
-    },
-    age: "number",
-    name: "string",
-  },
-};
 
 export type DataAttributeTraversal<T> = {
   attribute: AttributeDescription<T>;
   attributeName?: string;
-  parentSchema?: AttributeDescription<T>;
-  parentSchemaName?: string;
+  parentAttribute?: AttributeDescription<T>;
+  parentAttributeName?: string;
+  path?:string;
 };
+
+
+export function isDataType(object: any): object is DataType {
+  return typeof object === "string" && ["string", "number", "date", "boolean", "object", "array"].includes(object);
+}
+
+
+export function isBaseAttributeDescription(object: any): object is BaseAttributeDescription {
+  if (isDataType(object)) return true;
+  let type = (object as BaseAttributeDescription).type;
+  if (!type) return false;
+  if (isDataType(type) || (type.type && isDataType(type.type))) return true;
+  return false;
+}
