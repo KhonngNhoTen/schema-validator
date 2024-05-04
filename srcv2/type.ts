@@ -112,3 +112,27 @@ export type DataAttributeTraversal<T> = {
   parentSchema?: AttributeDescription<T>;
   parentSchemaName?: string;
 };
+
+type LeftMergePrimitiveKey<T, U> = Omit<T, Extract<keyof T, keyof U>>;
+
+type PrimitivesType = string | boolean | number;
+type ObjectMergeFull<T, U> = Exclude<keyof T, keyof U> extends never ? never : object;
+type CheckMergeFull<T, U> = T extends object
+  ? ObjectMergeFull<T, U>
+  : T extends any[]
+  ? U extends any[]
+    ? ObjectMergeFull<T[0], U[0]>
+    : never
+  : never;
+
+export type LeftMerge<T, U> = {
+  [K in Extract<keyof T, keyof U> as T[K] extends PrimitivesType
+    ? never
+    : CheckMergeFull<T[K], U[K]> extends never
+    ? never
+    : K]: T[K] extends PrimitivesType
+    ? never
+    : CheckMergeFull<T[K], U[K]> extends never
+    ? never
+    : LeftMerge<T[K], U[K]>;
+} & LeftMergePrimitiveKey<T, U>;
