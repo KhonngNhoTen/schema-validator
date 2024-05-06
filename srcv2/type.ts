@@ -116,7 +116,7 @@ export type DataAttributeTraversal<T> = {
 type LeftMergePrimitiveKey<T, U> = Omit<T, Extract<keyof T, keyof U>>;
 
 type PrimitivesType = string | boolean | number;
-type ObjectMergeFull<T, U> = Exclude<keyof T, keyof U> extends never ? never : object;
+type ObjectMergeFull<T, U> = keyof U extends never ? never : Exclude<keyof T, keyof U> extends never ? never : object;
 type CheckMergeFull<T, U> = T extends object
   ? ObjectMergeFull<T, U>
   : T extends any[]
