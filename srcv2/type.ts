@@ -130,3 +130,8 @@ export type LeftMerge<T, U> = {
     ? never
     : LeftMerge<T[K], U[K]>;
 } & LeftMergePrimitiveKey<T, U>;
+
+
+export type WrapType<T, U> = {
+  [k in keyof T]: T[k] extends {} ? U : WrapType<T[k], U>
+}

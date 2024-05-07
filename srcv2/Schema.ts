@@ -2,7 +2,7 @@ declare function require(name: string): any;
 const clone = require("clone") as Function;
 
 import { AttributeDescriptionHelper } from "./AttributeDescriptionHelper";
-import { AttributeDescription, BaseAttributeDescription, DataAttributeTraversal, DataType, LeftMerge } from "./type";
+import { AttributeDescription, BaseAttributeDescription, DataAttributeTraversal, DataType, LeftMerge, WrapType } from "./type";
 export class Schema<T> {
   static ARRAY_KEYWORD = "$_array_item_$";
 
@@ -108,6 +108,28 @@ export class Schema<T> {
     const schema = this.copy<T & U>();
     schema.description = { ...this.description, ...t.Description } as T & U;
     schema.rules = { ...this.rules, ...t.rules };
+    return schema;
+  }
+
+  wrap<U extends undefined | object>(wrap: string) {
+    const keys = wrap.split(".");
+    const description = {} as U extends undefined ? T : WrapType<U,T>;
+    let rules = Object.keys(this.rules.map).map(e => ({[wrap+e]: this.rules[e]}));
+    
+    
+    let loopAttribute =  description;
+    let path = ""
+    for (let i = 0; i < keys.length; i++) {
+      loopAttribute[keys[i]] = {};
+      loopAttribute = loopAttribute[keys[i]];
+      path+= keys[i] + (i === keys.length-1 ? "" : ".");
+      rules[path] = AttributeDescriptionHelper.defaultAttributeDescription("object");
+
+      if(i === keys.length-1) loopAttribute[keys[i]] = this.description;
+    }
+    
+    const schema = this.copy<U extends undefined ? T : WrapType<U,T>>(description);
+    
     return schema;
   }
 
