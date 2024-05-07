@@ -84,7 +84,7 @@ export class Schema<T> {
       delete this.description[path];
     }
 
-    const schema = new Schema<T>();
+    const schema = new Schema<Omit<T, keyof DeletedAttributes>>();
     schema.description = this.description;
     schema.rules = this.rules;
     return schema;

@@ -94,7 +94,6 @@ export type DataAttributeTraversal<T> = {
   path?:string;
 };
 
-<<<<<<< HEAD
 
 export function isDataType(object: any): object is DataType {
   return typeof object === "string" && ["string", "number", "date", "boolean", "object", "array"].includes(object);
@@ -108,7 +107,6 @@ export function isBaseAttributeDescription(object: any): object is BaseAttribute
   if (isDataType(type) || (type.type && isDataType(type.type))) return true;
   return false;
 }
-=======
 type LeftMergePrimitiveKey<T, U> = Omit<T, Extract<keyof T, keyof U>>;
 
 type PrimitivesType = string | boolean | number;
@@ -132,4 +130,3 @@ export type LeftMerge<T, U> = {
     ? never
     : LeftMerge<T[K], U[K]>;
 } & LeftMergePrimitiveKey<T, U>;
->>>>>>> 0f5bd6690340de348ff9657e1d9d3ee2f6d67482
