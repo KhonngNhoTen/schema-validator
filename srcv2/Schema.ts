@@ -2,26 +2,26 @@ declare function require(name: string): any;
 const clone = require("clone") as Function;
 
 import { AttributeDescriptionHelper } from "./AttributeDescriptionHelper";
-import { AttributeDescription, BaseAttributeDescription, DataAttributeTraversal, DataType } from "./type";
+import { AttributeDescription, BaseAttributeDescription, DataAttributeTraversal, DataType, LeftMerge } from "./type";
 export class Schema<T> {
   static ARRAY_KEYWORD = "$_array_item_$";
-  
+
   private description: T;
   private rules: Record<string, BaseAttributeDescription>;
 
-  //#region GETTER 
+  //#region GETTER
   public get Description(): T {
     return this.description;
   }
- 
+
   public get Rules(): Record<string, BaseAttributeDescription> {
     return this.rules;
   }
   //#endregion
- 
-  
-  constructor(attributeDescription?: AttributeDescription<T>) {
-    if(!attributeDescription) return;
+
+  constructor(attributeDescription?: AttributeDescription<T>, description?: T) {
+    if (description) this.description = description;
+    if (!attributeDescription) return;
     this.rules = this.createRule(attributeDescription);
   }
 
@@ -29,10 +29,9 @@ export class Schema<T> {
    * Create keys list rule for validation
    */
   private createRule(attributeDescription: AttributeDescription<T>) {
-    const rules: Record<string, BaseAttributeDescription> = {}
+    const rules: Record<string, BaseAttributeDescription> = {};
     const createRule = (data: DataAttributeTraversal<T>) => {
-      if(data.path)
-        rules[data.path] = AttributeDescriptionHelper.defaultAttributeDescription(data.attribute);
+      if (data.path) rules[data.path] = AttributeDescriptionHelper.defaultAttributeDescription(data.attribute);
     };
     AttributeDescriptionHelper.attributeTraversal(attributeDescription, createRule);
 
@@ -44,22 +43,21 @@ export class Schema<T> {
    * @param {string | string[]} paths - The path to specify the attribute
    * @param {boolean} required - True is required, false is optional
    */
-  private setRequired(paths: string[]|string, required: boolean) {
-    if(!Array.isArray(paths)) paths = [paths];
+  private setRequired(paths: string[] | string, required: boolean) {
+    if (!Array.isArray(paths)) paths = [paths];
 
     for (let i = 0; i < paths.length; i++) {
       const path = paths[i];
-      if(!this.rules[path]) throw new Error(`Attribute ${path} not found.`);
+      if (!this.rules[path]) throw new Error(`Attribute ${path} not found.`);
       this.rules[path].required = required;
     }
   }
 
-  
   /**
    * Method to set require of attribute or list of attribute to false.
    * @param {string | string[]} paths - The path to specify the attribute
    */
-  optional(paths: string[]|string) {
+  optional(paths: string[] | string) {
     this.setRequired(paths, false);
     return this;
   }
@@ -68,7 +66,7 @@ export class Schema<T> {
    * Method to set require of attribute or list of attribute to true.
    * @param {string | string[]} paths - The path to specify the attribute
    */
-  required(paths: string[]|string) {
+  required(paths: string[] | string) {
     this.setRequired(paths, true);
     return this;
   }
@@ -76,29 +74,64 @@ export class Schema<T> {
   /**
    * Remove attribute or list of attributes by paths
    */
-  remove<DeletedAttributes>(paths: string[]|string) {
+  remove<U extends object | undefined>(paths: string[] | string) {
+    const schema = this.copy<U extends undefined ? T : LeftMerge<T, U>>();
+
+    paths = this.formatPath(paths);
     for (let i = 0; i < paths.length; i++) {
       const path = paths[i];
-      if(!this.rules[path]) throw new Error(`Not found attribute "${path}"`);
-      delete this.rules[path];
-      delete this.description[path];
+      if (!schema.rules[path]) throw new Error(`Not found attribute "${path}"`);
+      delete schema.rules[path];
+      delete schema.description[path];
     }
 
-    const schema = new Schema<Omit<T, keyof DeletedAttributes>>();
-    schema.description = this.description;
-    schema.rules = this.rules;
+    console.log(schema.description);
+
     return schema;
   }
 
+  add<U>(path: string, field: DataType | BaseAttributeDescription, description?: U | undefined) {
+    const desc = { ...this.description, ...(description ?? {}) } as U extends undefined ? T : T & U;
+    const schema = this.copy<U extends undefined ? T : T & U>(desc);
+    schema.rules[path] = AttributeDescriptionHelper.defaultAttributeDescription(field);
 
-  add<U>(paths: string, field: Schema<U> | DataType | BaseAttributeDescription, description: U|undefined) {
-    this.Rules
+    return schema;
+  }
+
+  setRule(path: string, field: DataType | BaseAttributeDescription) {
+    const schema = this.copy<T>();
+    schema.rules[path] = AttributeDescriptionHelper.defaultAttributeDescription(field);
+    return schema;
+  }
+
+  merge<U>(t: Schema<U>) {
+    const schema = this.copy<T & U>();
+    schema.description = { ...this.description, ...t.Description } as T & U;
+    schema.rules = { ...this.rules, ...t.rules };
+    return schema;
+  }
+
+  private formatPath(path: string | string[]) {
+    if (!Array.isArray(path)) return [path];
+    return path;
+  }
+  private copy<U extends object | T>(desc?: U) {
+    const schema = new Schema<U>(undefined, desc);
+    if (!desc)
+      schema.description = (
+        Array.isArray(this.description)
+          ? [...this.description]
+          : typeof this.description === "object"
+          ? { ...this.description }
+          : desc
+      ) as U;
+    schema.rules = { ...this.rules };
+
+    return schema;
   }
 
   /** Create new Schema from current schema */
   clone() {
-    return clone(this) as Schema<T>; 
+    return clone(this) as Schema<T>;
   }
-
-  
 }
