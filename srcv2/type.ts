@@ -73,8 +73,8 @@ export interface AttributeDescription<T> extends BaseAttributeDescription {
   attributes?: {
     [K in keyof T]: T[K] extends object
       ? T[K] extends Array<any>
-      ? AttributeDescription<T[K][0]> 
-      : AttributeDescription<T[K]> 
+        ? AttributeDescription<T[K][0]>
+        : AttributeDescription<T[K]>
       : // : T[K] extends string
         // ? StringAttributeDescription | DataType
         // : T[K] extends number
@@ -82,23 +82,20 @@ export interface AttributeDescription<T> extends BaseAttributeDescription {
         // : BaseAttributeDescription | DataType;
         BaseAttributeDescription | DataType;
   };
-  item?:   AttributeDescription<T> | DataType;
+  item?: AttributeDescription<T> | DataType;
 }
-
 
 export type DataAttributeTraversal<T> = {
   attribute: AttributeDescription<T>;
   attributeName?: string;
   parentAttribute?: AttributeDescription<T>;
   parentAttributeName?: string;
-  path?:string;
+  path?: string;
 };
-
 
 export function isDataType(object: any): object is DataType {
   return typeof object === "string" && ["string", "number", "date", "boolean", "object", "array"].includes(object);
 }
-
 
 export function isBaseAttributeDescription(object: any): object is BaseAttributeDescription {
   if (isDataType(object)) return true;
@@ -131,7 +128,6 @@ export type LeftMerge<T, U> = {
     : LeftMerge<T[K], U[K]>;
 } & LeftMergePrimitiveKey<T, U>;
 
-
 export type WrapType<T, U> = {
-  [k in keyof T]: T[k] extends {} ? U : WrapType<T[k], U>
-}
+  [k in keyof T]: keyof T[k] extends never ? U : WrapType<T[k], U>;
+};

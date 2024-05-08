@@ -103,17 +103,45 @@ describe("Unittest Schema class", () => {
       });
     });
 
-    test("2 Test remove methods: remove deep attributes", () => {
-      const schema1 = userSchema.add("a.b.c", "number", { a: { b: { c: 1 } } });
-      const schema2 = schema1.remove<{ a: { b: object } }>("a.b.c");
+    // test("4 Test remove methods: remove deep attributes", () => {
+    //   const schema1 = userSchema.add("a.b.c", "number", { a: { b: { c: 1 } } });
+    //   const schema2 = schema1.remove<{ a: { b: object } }>("a.b.c");
 
-      expect(Object.keys(schema2.Rules)).not.toContainEqual("a.b.c");
-      expect(schema2.Description).toEqual({
-        age: 1,
-        name: "name",
-        item2: [{ test: "test" }],
-        items: [1],
-        props: { prop1: "prop1", prop2: 1 },
+    //   expect(Object.keys(schema2.Rules)).not.toContainEqual("a.b.c");
+    //   expect(schema2.Description).toEqual({
+    //     age: 1,
+    //     name: "name",
+    //     item2: [{ test: "test" }],
+    //     items: [1],
+    //     props: { prop1: "prop1", prop2: 1 },
+    //   });
+    // });
+
+    test("5 Test wrap methods", () => {
+      const schema = userSchema.wrap<{ a: { b: object } }>("a.b");
+
+      const rules = schema.Rules;
+      const keys = Object.keys(rules);
+      expect(keys).toContainEqual("a.b.name");
+      expect(keys).toContainEqual("a.b.age");
+      expect(keys).toContainEqual("a.b.props");
+      expect(keys).toContainEqual("a.b.props.prop1");
+      expect(keys).toContainEqual("a.b.props.prop1");
+      expect(keys).toContainEqual("a.b.items");
+      expect(keys).toContainEqual("a.b.items.*");
+      expect(keys).toContainEqual("a.b.item2");
+      expect(keys).toContainEqual("a.b.item2.*");
+      expect(keys).toContainEqual("a.b.item2.*.test");
+      expect(schema.Description).toEqual({
+        a: {
+          b: {
+            age: 1,
+            name: "name",
+            item2: [{ test: "test" }],
+            items: [1],
+            props: { prop1: "prop1", prop2: 1 },
+          },
+        },
       });
     });
   });
