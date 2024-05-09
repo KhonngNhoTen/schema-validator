@@ -96,35 +96,24 @@ export class Schema<T> {
   }
 
   wrap<U>(wrap: string) {
-    const keys = wrap.split(".");
-    const description = {};
-    let rules = Object.keys(this.rules).reduce<Record<string, BaseAttributeDescription>>(
-      (agg, e) => ({ ...agg, [`${wrap}.${e}`]: this.rules[e] }),
-      {}
-    );
+    const { rules, rootExample, leafExample, paths } = AttributeDescriptionHelper.createByPath(wrap);
 
-    let loopAttribute = description;
-    let path = "";
-    for (let i = 0; i < keys.length; i++) {
-      loopAttribute[keys[i]] = {};
-      path += keys[i] + (i === keys.length - 1 ? "" : ".");
-      rules[path] = AttributeDescriptionHelper.defaultAttributeDescription("object");
-
-      if (i === keys.length - 1) loopAttribute[keys[i]] = this.description;
-      else loopAttribute = loopAttribute[keys[i]];
-    }
+    Array.isArray(leafExample)
+      ? leafExample.push(this.description)
+      : (leafExample[paths.length - 1] = this.description);
 
     const schema = this.copy<U extends object ? WrapType<U, T> : T>(
-      description as U extends object ? WrapType<U, T> : T
+      rootExample as U extends object ? WrapType<U, T> : T
     );
-    schema.rules = rules;
+    schema.rules = { ...schema.rules, ...rules };
     return schema;
   }
 
   add<U>(path: string, field: DataType | BaseAttributeDescription, description?: U | undefined) {
     const desc = { ...this.description, ...(description ?? {}) } as U extends undefined ? T : T & U;
     const schema = this.copy<U extends undefined ? T : T & U>(desc);
-    schema.rules[path] = AttributeDescriptionHelper.defaultAttributeDescription(field);
+    const { rules } = AttributeDescriptionHelper.createByPath(path);
+    schema.rules = { ...schema.rules, ...rules };
 
     return schema;
   }
